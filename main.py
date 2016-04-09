@@ -6,9 +6,29 @@ from flask.ext.user import login_required, UserManager, UserMixin, SQLAlchemyAda
 
 app = Flask(__name__)
 
-@app.route('/')
-def Hello():
-	return "Hello World"
+#CONFIG
+class ConfigClass(object):
+    # Flask settings
+    SECRET_KEY =              os.getenv('SECRET_KEY',       'THIS IS AN INSECURE SECRET')
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL',     'sqlite:///basic_app.sqlite')
+    CSRF_ENABLED = True
 
-if __name__ == '__main__':
-	app.run(debug = True)
+    # Flask-Mail settings
+    MAIL_USERNAME =           os.getenv('MAIL_USERNAME',        'vortexhackathon@outlook.com')
+    MAIL_PASSWORD =           os.getenv('MAIL_PASSWORD',        'ABC@123456')
+    MAIL_DEFAULT_SENDER =     os.getenv('MAIL_DEFAULT_SENDER',  '"Campus Canteen" <vortexhackathon@outlook.com>')
+    MAIL_SERVER =             os.getenv('MAIL_SERVER',          'smtp.live.com')
+    MAIL_PORT =           int(os.getenv('MAIL_PORT',            '25'))
+    MAIL_USE_SSL =        int(os.getenv('MAIL_USE_SSL',         True))
+
+    # Flask-User settings
+    USER_APP_NAME        = "Campus Canteen"                # Used by email templates
+
+
+
+
+@app.route('/')
+@app.route('/login')
+@login_required
+def login_page():
+	return('login.html', title = 'Sign In')
