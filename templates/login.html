@@ -21,11 +21,11 @@
         <div class="bar"></div>
       </div>
       <div class="button-container">
-        <button href="#"><span>Go</span></button>
+        <button><span>Go</span></button>
       </div>
       <br>  
       <div class="button-container">
-        <button onclick="location.href ='register.html';""><span>Register Now</span></button>
+        <button onclick="location.href ='{{ url_for("register") }}';"><span>Register Now</span></button>
       </div>
       <div class="footer"><a href="reset_password.html">Forgot your password?</a></div>
     </form>
