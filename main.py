@@ -13,36 +13,69 @@ CSRF_ENABLED = True
 SECRET_KEY = 'something secret'
 SESSION_TYPE = 'filesystem'
 basedir = os.path.abspath(os.path.dirname(__file__))
-SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app1.db')
+SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
 SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
 
 #Model
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key = True)
-    email = db.Column(db.String(255), index = True, unique = True)
-    password = db.Column(db.String(64), index = True)
-    
-    def __init__(self, email, password):
-        self.email = email
-        self.password = password
+db = sqlite3.connect('app.db')
+print "opened database successfully";
+cur = db.cursor()
+cur.execute('''DROP TABLE user''')
+cur.execute('''CREATE TABLE user(id INTEGER PRIMARY KEY, name TEXT, password TEXT)''')
+db.isolation_level = None
+db.close()
 
 #Forms
 class RegistrationForm(Form):
-	username = StringField('Username', [validators.InputRequired()])
-	password = PasswordField('New Password', [validators.InputRequired()])
+    username = StringField('Username', [validators.InputRequired()])
+    password = PasswordField('New Password', [validators.InputRequired()])
+
+class SignInForm(Form):
+    username = StringField('Username', [validators.InputRequired()])
+    password = PasswordField('New Password', [validators.InputRequired()])
+
+    def __init__(self, *args, **kwargs):
+        Form.__init__(self, *args, **kwargs)
+        self.check = None
+
+    def validate(self):
+        user = self.username.data
+        rv = Form.validate(self)
+        if not rv:
+            return False
+        with sqlite3.connect('app.db') as con:
+            cur = con.cursor()
+            cur.execute('SELECT name FROM user WHERE "name"=?', (user,))
+            check = cur.fetchone()
+            print check
+        if check is None:
+            self.username.errors.append('Unknown Username')
+            return False
+
+        #if not check.check_password(self.password.data):
+        #   self.password.errors.append('Invalid Password')
+        #    return False
+
+        self.check = check
+        return True           
+
 
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
-	return render_template("login.html")
+    form = SignInForm(csrf_enabled = False)
+    if form.validate():
+        return redirect(url_for('hello'))
+    return render_template("loginform.html", title = 'Sign In', form=form)    
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegistrationForm(csrf_enabled = False)
     if request.method == 'POST' and form.validate():
-        user = User(form.username.data, form.password.data)
-        db.session.add(user)
-        db.session.commit()
+        with sqlite3.connect('app.db') as con:
+            cur = con.cursor()
+            cur.execute("INSERT INTO user (name, password) VALUES (?,?)",(form.username.data, form.password.data))
+            con.commit()
         return redirect(url_for('hello'))
     return render_template('registerform.html', title = 'Sign Up', form = form)
 
@@ -51,4 +84,4 @@ def hello():
     return "Welcome to Campus Canteen"
 
 if __name__ == '__main__':
-	app.run(debug = True)
+    app.run(debug = True)
