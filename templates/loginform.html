@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+</head>
+<body>
+	<h1>Sign In</h1>
+	<form action="" method="post" name="login">
+	{{ form.hidden_tag() }}
+	<p>
+		Please enter your email address:<br>
+		{{ form.username(size=80) }}
+	</p>
+	<p>
+		Please enter your password:<br>
+		{{ form.password(size=80) }}
+	</p>
+	<p>
+		<input type="submit" value="Sign In">
+	</p>
+	<p>
+		New here?? Get yourself <a href='{{ url_for('register') }}'>registered</a> straight away!!
+	</p>
+
+</body>
+</html>

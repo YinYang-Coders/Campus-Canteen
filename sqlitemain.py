@@ -27,8 +27,8 @@ db.close()
 
 #Forms
 class RegistrationForm(Form):
-    username = StringField('Username', [validators.InputRequired()])
-    password = PasswordField('New Password', [validators.InputRequired()])
+	username = StringField('Username', [validators.InputRequired()])
+	password = PasswordField('New Password', [validators.InputRequired()])
 
 class SignInForm(Form):
     username = StringField('Username', [validators.InputRequired()])
@@ -84,4 +84,4 @@ def hello():
     return "Welcome to Campus Canteen"
 
 if __name__ == '__main__':
-    app.run(debug = True)
+	app.run(debug = True)
