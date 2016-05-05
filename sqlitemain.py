@@ -13,7 +13,7 @@ CSRF_ENABLED = True
 SECRET_KEY = 'something secret'
 SESSION_TYPE = 'filesystem'
 basedir = os.path.abspath(os.path.dirname(__file__))
-SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app1.db')
+SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
 SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository')
 
 #Model
@@ -22,7 +22,8 @@ print "opened database successfully";
 cur = db.cursor()
 cur.execute('''DROP TABLE user''')
 cur.execute('''CREATE TABLE user(id INTEGER PRIMARY KEY, name TEXT, password TEXT)''')
-db.commit()
+db.isolation_level = None
+db.close()
 
 #Forms
 class RegistrationForm(Form):
@@ -33,21 +34,27 @@ class SignInForm(Form):
     username = StringField('Username', [validators.InputRequired()])
     password = PasswordField('New Password', [validators.InputRequired()])
 
+    def __init__(self, *args, **kwargs):
+        Form.__init__(self, *args, **kwargs)
+        self.check = None
+
     def validate(self):
+        user = self.username.data
         rv = Form.validate(self)
         if not rv:
             return False
         with sqlite3.connect('app.db') as con:
             cur = con.cursor()
-            cur.execute("""SELECT name FROM user where name='self.username.data'""")
+            cur.execute('SELECT name FROM user WHERE "name"=?', (user,))
             check = cur.fetchone()
+            print check
         if check is None:
             self.username.errors.append('Unknown Username')
             return False
 
-        if not check.check_password(self.password.data):
-            self.password.errors.append('Invalid Password')
-            return False
+        #if not check.check_password(self.password.data):
+        #   self.password.errors.append('Invalid Password')
+        #    return False
 
         self.check = check
         return True           
@@ -57,7 +64,7 @@ class SignInForm(Form):
 @app.route('/', methods=['GET', 'POST'])
 def login():
     form = SignInForm(csrf_enabled = False)
-    if request.method == 'POST' and form.validate():
+    if form.validate():
         return redirect(url_for('hello'))
     return render_template("loginform.html", title = 'Sign In', form=form)    
 
